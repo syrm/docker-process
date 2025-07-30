@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/docker/docker/api/types/container"
 	"github.com/docker/docker/client"
+	"github.com/joho/godotenv"
 )
 
 type ContainerInfo struct {
@@ -38,6 +37,8 @@ func main() {
 	if len(os.Args) > 1 && os.Args[1] == "--compose" {
 		useCompose = true
 	}
+
+	godotenv.Load()
 
 	var projectName string
 	if useCompose {
@@ -152,7 +153,7 @@ func main() {
 			colMark = red
 		}
 
-		offset := findUniqIdOffset(uniqID, info.ID)
+		offset := findUniqIDOffset(uniqID, info.ID)
 		id := fmt.Sprintf("%s%s%s%s%s", reset, info.ID[0:offset], brightBlack, info.ID[offset:12], reset)
 
 		stateMark := fmt.Sprintf("%s●%s", colMark, reset)
@@ -161,21 +162,21 @@ func main() {
 	}
 }
 
-func fillUniqID(uniqId map[string]int, containerID string) map[string]int {
+func fillUniqID(uniqID map[string]int, containerID string) map[string]int {
 	for i := range min(len(containerID), 10) {
 		key := containerID[:i+1]
-		if count, ok := uniqId[key]; ok {
-			uniqId[key] = count + 1
+		if count, ok := uniqID[key]; ok {
+			uniqID[key] = count + 1
 			continue
 		}
 
-		uniqId[key] = 1
+		uniqID[key] = 1
 	}
 
-	return uniqId
+	return uniqID
 }
 
-func findUniqIdOffset(uniqId map[string]int, containerID string) int {
+func findUniqIDOffset(uniqId map[string]int, containerID string) int {
 	var key string
 	for i := range min(len(containerID), 10) {
 		key = containerID[:i+1]
